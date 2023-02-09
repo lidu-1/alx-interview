@@ -1,45 +1,23 @@
 #!/usr/bin/node
 
-/**
- * Star wars api
- * Script that prints all characters of a Star Wars movie:
- */
 const request = require('request');
-const filmId = process.argv[2];
-if (!filmId || isNaN(filmId)) {
-  process.exit(1);
-}
-const url = `https://swapi-api.hbtn.io/api/films/${filmId}`;
 
-request(url, (error, response, body) => {
-  if (error) {
-    console.log(error);
-    return;
-  }
-  const respPromises = [];
+const movieId = process.argv[2];
 
-  const json = JSON.parse(body);
-  const characters = json.characters;
+const url = `https://swapi-api.hbtn.io/api/films/${movieId}`;
 
-  characters.forEach((character) => {
-    const url = character;
-    const promise = new Promise((resolve, reject) => {
-      request(url, (error, response, body) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        const json = JSON.parse(body);
-        resolve(json.name);
+request(url, async (err, res, body) => {
+  err && console.log(err);
+
+  const charactersArray = (JSON.parse(res.body).characters);
+  for (const character of charactersArray) {
+    await new Promise((resolve, reject) => {
+      request(character, (err, res, body) => {
+        err && console.log(err);
+
+        console.log(JSON.parse(body).name);
+        resolve();
       });
     });
-    respPromises.push(promise);
-  });
-  Promise.all(respPromises).then((values) => {
-    values.forEach((value) => {
-      console.log(value);
-    });
-  }).catch((error) => {
-    console.log(error);
-  });
+  }
 });
